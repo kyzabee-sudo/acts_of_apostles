@@ -21,23 +21,29 @@ function renderApostles() {
     .sort((a, b) => Number(a.ApostleNumber) - Number(b.ApostleNumber));
 
   apostles.forEach(ap => {
-    const card = document.createElement('a');
-    card.href = `apostle.html?apostle=${encodeURIComponent(ap.ApostleName)}`;
-    card.className = 'card';
+  // Count total stories for this apostle across all seasons
+  const storyCount = allData.filter(row => row.ApostleName === ap.ApostleName && row.StoryDate).length;
 
-    const bg = document.createElement('div');
-    bg.className = 'card-bg';
-    bg.style.backgroundImage = `url(${ap.ApostlePortraitURL || 'img/placeholder.jpg'})`;
+  const card = document.createElement('a');
+  card.href = `apostle.html?apostle=${encodeURIComponent(ap.ApostleName)}`;
+  card.className = 'card';
 
-    const overlay = document.createElement('div');
-    overlay.className = 'card-overlay';
-    overlay.innerHTML = `
-      <h3>${ap.ApostleName} (#${ap.ApostleNumber})</h3>
-      <p>Born: ${ap.BirthDate} | Called: ${ap.CallDate}<br>Died: ${ap.DeathDate || 'Living'}</p>
-      <p>Coverage: ${ap.CoverageStartDate} – ${ap.CoverageEndDate || 'ongoing'}</p>
-    `;
+  const bg = document.createElement('div');
+  bg.className = 'card-bg';
+  const portraitUrl = ap.ApostlePortraitURL.trim() || 'img/placeholder.jpg';
+  bg.style.backgroundImage = `url(${portraitUrl})`;
 
-    card.append(bg, overlay);
-    grid.appendChild(card);
-  });
+  const overlay = document.createElement('div');
+  overlay.className = 'card-overlay';
+  overlay.innerHTML = `
+    <h3>${ap.ApostleName} (#${ap.ApostleNumber})</h3>
+    <p style="font-size: 1.3rem; margin: 0.8rem 0; opacity: 0.95;">
+      ${storyCount} ${storyCount === 1 ? 'story' : 'stories'}
+    </p>
+    <p>Born: ${ap.BirthDate} | Called: ${ap.CallDate}<br>Died: ${ap.DeathDate || 'Living'}</p>
+  `;
+
+  card.append(bg, overlay);
+  grid.appendChild(card);
+});
 }
