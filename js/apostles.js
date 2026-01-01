@@ -21,8 +21,15 @@ function renderApostles() {
     .sort((a, b) => Number(a.ApostleNumber) - Number(b.ApostleNumber));
 
   apostles.forEach(ap => {
-  // Count total stories for this apostle across all seasons
-  const storyCount = allData.filter(row => row.ApostleName === ap.ApostleName && row.StoryDate).length;
+  // Use the highest SeasonNumber for this apostle (already selected in 'ap')
+  const currentSeason = Number(ap.SeasonNumber);
+
+  // Count ONLY stories from the highest season
+  const storyCount = allData.filter(row => 
+    row.ApostleName === ap.ApostleName && 
+    row.StoryDate && 
+    Number(row.SeasonNumber) === currentSeason
+  ).length;
 
   const card = document.createElement('a');
   card.href = `apostle.html?apostle=${encodeURIComponent(ap.ApostleName)}`;
