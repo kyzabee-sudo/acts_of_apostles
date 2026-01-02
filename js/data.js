@@ -55,14 +55,10 @@ async function fetchData() {
     const csvText = await response.text();
     allData = parseCSV(csvText);
     console.log(`Loaded ${allData.length} stories from static database.csv`);
-    return allData;
+    return allData;  // <-- ADD THIS LINE
   } catch (e) {
     console.error('CSV load failed:', e);
     document.body.innerHTML += '<p style="text-align:center;color:red;">Failed to load data. Check console.</p>';
+    return [];  // <-- OPTIONAL: Graceful empty return
   }
-}
-
-// getFirstImage function unchanged (keep your existing one)
-async function getFirstImage(threadUrl, fallbackPortrait) {
-  // ... (your current getFirstImage code)
 }

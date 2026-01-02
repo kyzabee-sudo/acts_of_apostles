@@ -33,30 +33,35 @@ async function renderStories(apostleName) {
 
   // Render loop unchanged
   for (const story of stories) {
-    const card = document.createElement('a');
-    card.href = story.ThreadReaderURL || story.ThreadLink;
-    card.target = '_blank';
-    card.rel = 'noopener';
-    card.className = 'card';
+  const card = document.createElement('a');
+  card.href = story.ThreadReaderURL || story.ThreadLink;
+  card.target = '_blank';
+  card.rel = 'noopener';
+  card.className = 'card';
 
-    const bg = document.createElement('div');
-    bg.className = 'card-bg';
-    const imgUrl = await getFirstImage(story.ThreadReaderURL, profile.ApostlePortraitURL);
-    bg.style.backgroundImage = `url(${imgUrl})`;
+  const bg = document.createElement('div');
+  bg.className = 'card-bg';
 
-    const overlay = document.createElement('div');
-    overlay.className = 'card-overlay';
-    overlay.innerHTML = `
-      <h3>${story.StoryDescription || 'Untitled Story'}</h3>
-      <p>${story.StoryDate || 'Date unknown'}</p>
-    `;
+  // New priority logic for story image
+  let imgUrl = 'img/placeholder.jpg'; // final fallback
 
-    card.append(bg, overlay);
-    grid.appendChild(card);
+  if (story.StoryImageURL && story.StoryImageURL.trim() && story.StoryImageURL.trim() !== 'No Image') {
+    imgUrl = story.StoryImageURL.trim();
+  } else if (profile.ApostlePortraitURL && profile.ApostlePortraitURL.trim()) {
+    imgUrl = profile.ApostlePortraitURL.trim();
   }
+  // else: imgUrl remains 'img/placeholder.jpg'
 
-  // NEW: Optional message if no stories in current season
-  if (stories.length === 0) {
-    grid.innerHTML = '<p style="text-align: center; padding: 2rem;">No stories available for the current season.</p>';
-  }
+  bg.style.backgroundImage = `url(${imgUrl})`;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'card-overlay';
+  overlay.innerHTML = `
+    <h3>${story.StoryDescription || 'Untitled Story'}</h3>
+    <p>${story.StoryDate || 'Date unknown'}</p>
+  `;
+
+  card.append(bg, overlay);
+  grid.appendChild(card);
+}
 }
