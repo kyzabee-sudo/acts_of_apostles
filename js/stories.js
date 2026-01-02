@@ -16,7 +16,7 @@ async function renderStories(apostleName) {
   const grid = document.getElementById('stories-grid');
   grid.innerHTML = '';
 
-  // Find highest-season profile data
+  // Find highest-season profile data (unchanged)
   const profileRows = allData.filter(r => r.ApostleName === apostleName);
   const profile = profileRows.reduce((best, cur) => 
     Number(cur.SeasonNumber) > Number(best.SeasonNumber) ? cur : best
@@ -25,11 +25,13 @@ async function renderStories(apostleName) {
   headerName.textContent = `${profile.ApostleName} (#${profile.ApostleNumber})`;
   headerDates.innerHTML = `Born: ${profile.BirthDate} | Called: ${profile.CallDate}<br>Died: ${profile.DeathDate || 'Living'}`;
 
-  // All stories for this apostle, sorted by StoryDate
+  // NEW: Get highest season and filter ONLY stories from that season
+  const currentSeason = Number(profile.SeasonNumber);
   const stories = allData
-    .filter(r => r.ApostleName === apostleName && r.StoryDate)
+    .filter(r => r.ApostleName === apostleName && r.StoryDate && Number(r.SeasonNumber) === currentSeason)
     .sort((a, b) => new Date(a.StoryDate) - new Date(b.StoryDate));
 
+  // Render loop unchanged
   for (const story of stories) {
     const card = document.createElement('a');
     card.href = story.ThreadReaderURL || story.ThreadLink;
@@ -51,5 +53,10 @@ async function renderStories(apostleName) {
 
     card.append(bg, overlay);
     grid.appendChild(card);
+  }
+
+  // NEW: Optional message if no stories in current season
+  if (stories.length === 0) {
+    grid.innerHTML = '<p style="text-align: center; padding: 2rem;">No stories available for the current season.</p>';
   }
 }
