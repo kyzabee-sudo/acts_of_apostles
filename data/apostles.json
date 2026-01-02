@@ -9,7 +9,7 @@
     "<HTML>": "</HEAD>"
   },
   {
-    "<HTML>": "<BODY BGCOLOR=\"#FFFFFF\" TEXT=\"#000000\">"
+    "<HTML>": "<BODY BGCOLOR=#FFFFFF TEXT=#000000>"
   },
   {
     "<HTML>": "<!-- GSE Default Error -->"
@@ -18,7 +18,7 @@
     "<HTML>": "<H1>Temporary Redirect</H1>"
   },
   {
-    "<HTML>": "The document has moved <A HREF=\"https://doc-0k-3s-sheets.googleusercontent.com/export/54bogvaave6cua4cdnls17ksc4/upc301nscepfud2vokft3v4oss/1767362520000/109117992940828768606/*/1bNPhgm3uwp84rB6YxmtrRR3_OCgB4zEFMo-X0aWq_J4?format=csv&amp;gid=760488340\">here</A>."
+    "<HTML>": "The document has moved <A HREF=https://doc-08-3s-sheets.googleusercontent.com/pub/54bogvaave6cua4cdnls17ksc4/8mpkhhukrsh5pjc8v66102eqkg/1767365030000/109117992940828768606/*/e@2PACX-1vQfZPsL8RZmrhJyMbXHCwT7C74Aad0euECIZI2qosIWmMaP7VB3AXBqtWrnPqpL7he2ZVKs5H8YYqDe?gid=760488340&amp;single=true&amp;output=csv>here</A>."
   },
   {
     "<HTML>": "</BODY>"
