@@ -1,4 +1,6 @@
 // js/apostles.js
+let filteredApostles = [];  // Track filtered results
+
 document.addEventListener('DOMContentLoaded', async () => {
   await fetchData();
   renderChronological();
@@ -8,6 +10,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   const successionTab = document.getElementById('succession-tab');
   const chronoGrid = document.getElementById('apostles-grid');
   const successionView = document.getElementById('succession-view');
+  const searchInput = document.getElementById('apostle-search');
+  const clearSearchBtn = document.getElementById('clear-search');
+
+  // Search functionality
+  searchInput.addEventListener('input', (e) => {
+    const query = e.target.value.trim().toLowerCase();
+    clearSearchBtn.style.display = query ? 'block' : 'none';
+    filterAndRender(query);
+  });
+
+  clearSearchBtn.addEventListener('click', () => {
+    searchInput.value = '';
+    clearSearchBtn.style.display = 'none';
+    filterAndRender('');
+    searchInput.focus();
+  });
 
   chronoTab.addEventListener('click', () => {
     chronoTab.classList.add('active');
@@ -23,6 +41,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     successionView.style.display = 'flex';
   });
 });
+
+// Filter apostles by search query
+function filterAndRender(query) {
+  // Get unique apostles
+  const apostleNames = [...new Set(allData.map(r => r.ApostleName).filter(Boolean))];
+  const allApostles = apostleNames.map(name => {
+    const profile = getPreferredApostleData(name);
+    return {
+      name,
+      number: profile.ApostleNumber || '?',
+      profile
+    };
+  }).sort((a, b) => Number(a.number) - Number(b.number));
+
+  // Filter by search query
+  if (query) {
+    filteredApostles = allApostles.filter(ap =>
+      ap.name.toLowerCase().includes(query)
+    );
+  } else {
+    filteredApostles = allApostles;
+  }
+
+  // Re-render both views with filtered data
+  renderChronological(filteredApostles);
+  renderSuccession(filteredApostles);
+}
 
 // Helper: Get the preferred row(s) for an apostle (InSeason "1" > "0")
 function getPreferredApostleData(apostleName) {
@@ -56,20 +101,25 @@ function getStoryCount(apostleName) {
   ).length;
 }
 
-function renderChronological() {
+function renderChronological(apostlesToRender = null) {
   const grid = document.getElementById('apostles-grid');
   grid.innerHTML = '';
 
-  // Get unique apostles
-  const apostleNames = [...new Set(allData.map(r => r.ApostleName).filter(Boolean))];
-  const apostles = apostleNames.map(name => {
-    const profile = getPreferredApostleData(name);
-    return {
-      name,
-      number: profile.ApostleNumber || '?',
-      profile
-    };
-  }).sort((a, b) => Number(a.number) - Number(b.number));
+  // Use provided filtered list or get all unique apostles
+  let apostles;
+  if (apostlesToRender) {
+    apostles = apostlesToRender;
+  } else {
+    const apostleNames = [...new Set(allData.map(r => r.ApostleName).filter(Boolean))];
+    apostles = apostleNames.map(name => {
+      const profile = getPreferredApostleData(name);
+      return {
+        name,
+        number: profile.ApostleNumber || '?',
+        profile
+      };
+    }).sort((a, b) => Number(a.number) - Number(b.number));
+  }
 
   apostles.forEach(ap => {
     const storyCount = getStoryCount(ap.name);
@@ -99,9 +149,15 @@ function renderChronological() {
   });
 }
 
-function renderSuccession() {
+function renderSuccession(apostlesToRender = null) {
   const view = document.getElementById('succession-view');
   view.innerHTML = '';
+
+  // Get filtered apostle names if searching
+  let filteredNames = null;
+  if (apostlesToRender) {
+    filteredNames = new Set(apostlesToRender.map(ap => ap.name));
+  }
 
   // Group by SeasonNumber
   const seasonsMap = new Map();
@@ -111,6 +167,9 @@ function renderSuccession() {
     if (!seasonsMap.has(season)) seasonsMap.set(season, new Map());
 
     const name = row.ApostleName;
+    // Skip if searching and this apostle doesn't match filter
+    if (filteredNames && !filteredNames.has(name)) return;
+
     const apostleMap = seasonsMap.get(season);
     if (name && !apostleMap.has(name)) {
       apostleMap.set(name, row);  // Keep first occurrence (or we can merge later if needed)
@@ -122,6 +181,9 @@ function renderSuccession() {
   sortedSeasons.forEach(season => {
     const apostleMap = seasonsMap.get(season);
     const apostles = [...apostleMap.values()].sort((a, b) => Number(a.ApostleNumber) - Number(b.ApostleNumber));
+
+    // Skip empty seasons when filtering
+    if (apostles.length === 0) return;
 
     const column = document.createElement('div');
     column.className = 'season-column';
