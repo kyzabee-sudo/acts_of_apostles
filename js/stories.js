@@ -25,11 +25,25 @@ async function renderStories(apostleName) {
   headerName.textContent = `${profile.ApostleName} (#${profile.ApostleNumber})`;
   headerDates.innerHTML = `Born: ${profile.BirthDate} | Called: ${profile.CallDate}<br>Died: ${profile.DeathDate || 'Living'}`;
 
-  // NEW: Get highest season and filter ONLY stories from that season
-  const currentSeason = Number(profile.SeasonNumber);
-  const stories = allData
-    .filter(r => r.ApostleName === apostleName && r.StoryDate && Number(r.SeasonNumber) === currentSeason)
-    .sort((a, b) => new Date(a.StoryDate) - new Date(b.StoryDate));
+ // Replace the currentSeason + stories block with:
+
+const stories = allData
+  .filter(r => 
+    r.ApostleName === apostleName && 
+    r.StoryDate?.trim() && 
+    (r.InSeason === "1" || r.InSeason === 1)   // handles string or number
+  )
+  .sort((a, b) => new Date(a.StoryDate) - new Date(b.StoryDate));
+
+// Optional: still show the current season number in header if useful
+const currentSeason = Math.max(
+  ...allData
+    .filter(r => r.ApostleName === apostleName && (r.InSeason === "1" || r.InSeason === 1))
+    .map(r => Number(r.SeasonNumber) || 0),
+  0
+);
+
+headerName.textContent += ` – Season ${currentSeason}`;
 
   // Render loop unchanged
   for (const story of stories) {
