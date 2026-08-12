@@ -47,7 +47,7 @@ function filterAndRender(query) {
   // Get unique apostles
   const apostleNames = [...new Set(allData.map(r => r.ApostleName).filter(Boolean))];
   const allApostles = apostleNames.map(name => {
-    const profile = getPreferredApostleData(name);
+    const profile = getPreferredApostleData(name) || {};
     return {
       name,
       number: profile.ApostleNumber || '?',
@@ -69,38 +69,6 @@ function filterAndRender(query) {
   renderSuccession(filteredApostles);
 }
 
-// Helper: Get the preferred row(s) for an apostle (InSeason "1" > "0")
-function getPreferredApostleData(apostleName) {
-  const rows = allData.filter(r => r.ApostleName === apostleName);
-
-  // Prefer InSeason="1"
-  let preferred = rows.filter(r => r.InSeason === "1");
-  if (preferred.length === 0) {
-    // Fall back to "0"
-    preferred = rows.filter(r => r.InSeason === "0");
-  }
-  // If still none, use any (placeholder)
-  if (preferred.length === 0) {
-    preferred = rows;
-  }
-
-  // Take the one with highest SeasonNumber if multiple (rare)
-  preferred.sort((a, b) => Number(b.SeasonNumber) - Number(a.SeasonNumber));
-  return preferred[0] || {};
-}
-
-// Helper: Count stories from preferred set only
-function getStoryCount(apostleName) {
-  const profile = getPreferredApostleData(apostleName);
-  const preferredInSeason = profile.InSeason || "";
-
-  return allData.filter(r =>
-    r.ApostleName === apostleName &&
-    r.StoryDate && r.StoryDate.trim() !== "" &&
-    r.InSeason === preferredInSeason
-  ).length;
-}
-
 function renderChronological(apostlesToRender = null) {
   const grid = document.getElementById('apostles-grid');
   grid.innerHTML = '';
@@ -112,7 +80,7 @@ function renderChronological(apostlesToRender = null) {
   } else {
     const apostleNames = [...new Set(allData.map(r => r.ApostleName).filter(Boolean))];
     apostles = apostleNames.map(name => {
-      const profile = getPreferredApostleData(name);
+      const profile = getPreferredApostleData(name) || {};
       return {
         name,
         number: profile.ApostleNumber || '?',
@@ -141,7 +109,7 @@ function renderChronological(apostlesToRender = null) {
       <p style="font-size: 1.3rem; margin: 0.8rem 0;">
         ${isPlaceholder ? 'No Stories Yet' : `${storyCount} ${storyCount === 1 ? 'story' : 'stories'}`}
       </p>
-      <p>Born: ${ap.profile.BirthDate || '—'} | Called: ${ap.profile.CallDate || '—'}<br>Died: ${ap.profile.DeathDate || 'Living'}</p>
+      <p>Born: ${ap.profile.BirthDate || '—'} | Called: ${ap.profile.CallDate || '—'}<br>${formatDeathLabel(ap.profile.DeathDate)}</p>
     `;
 
     card.append(bg, overlay);
@@ -197,7 +165,7 @@ function renderSuccession(apostlesToRender = null) {
       const name = row.ApostleName;
       const storyCount = getStoryCount(name);
       const isPlaceholder = storyCount === 0;
-      const profile = getPreferredApostleData(name);
+      const profile = getPreferredApostleData(name) || {};
 
       const card = document.createElement('a');
       card.href = isPlaceholder ? '#' : `apostle.html?apostle=${encodeURIComponent(name)}`;

@@ -2,80 +2,65 @@
 document.addEventListener('DOMContentLoaded', async () => {
   await fetchData();
   const params = new URLSearchParams(location.search);
-  const name = params.get('apostle');
-  if (!name) {
-    document.body.innerHTML = '<p>No apostle selected.</p>';
-    return;
-  }
-  renderStories(name);
+  renderStories(params.get('apostle'));
 });
 
-async function renderStories(apostleName) {
+function renderStories(apostleName) {
   const headerName = document.getElementById('apostle-name');
   const headerDates = document.getElementById('apostle-dates');
   const grid = document.getElementById('stories-grid');
   grid.innerHTML = '';
 
-  // Find highest-season profile data (unchanged)
-  const profileRows = allData.filter(r => r.ApostleName === apostleName);
-  const profile = profileRows.reduce((best, cur) => 
-    Number(cur.SeasonNumber) > Number(best.SeasonNumber) ? cur : best
-  );
+  if (!apostleName) {
+    headerName.textContent = 'No apostle selected';
+    return;
+  }
+
+  const profile = getPreferredApostleData(apostleName);
+  if (!profile) {
+    headerName.textContent = 'Apostle not found';
+    const message = document.createElement('p');
+    message.textContent = `No apostle named “${apostleName}” was found.`;
+    grid.appendChild(message);
+    return;
+  }
 
   headerName.textContent = `${profile.ApostleName} (#${profile.ApostleNumber})`;
-  headerDates.innerHTML = `Born: ${profile.BirthDate} | Called: ${profile.CallDate}<br>Died: ${profile.DeathDate || 'Living'}`;
-
- // Replace the currentSeason + stories block with:
-
-const stories = allData
-  .filter(r => 
-    r.ApostleName === apostleName && 
-    r.StoryDate?.trim() && 
-    (r.InSeason === "1" || r.InSeason === 1)   // handles string or number
-  )
-  .sort((a, b) => new Date(a.StoryDate) - new Date(b.StoryDate));
-
-// Optional: still show the current season number in header if useful
-const currentSeason = Math.max(
-  ...allData
-    .filter(r => r.ApostleName === apostleName && (r.InSeason === "1" || r.InSeason === 1))
-    .map(r => Number(r.SeasonNumber) || 0),
-  0
-);
-
-headerName.textContent += ` – Season ${currentSeason}`;
-
-  // Render loop unchanged
-  for (const story of stories) {
-  const card = document.createElement('a');
-  card.href = story.ThreadReaderURL || story.ThreadLink;
-  card.target = '_blank';
-  card.rel = 'noopener';
-  card.className = 'card';
-
-  const bg = document.createElement('div');
-  bg.className = 'card-bg';
-
-  // New priority logic for story image
-  let imgUrl = 'img/placeholder.jpg'; // final fallback
-
-  if (story.StoryImageURL && story.StoryImageURL.trim() && story.StoryImageURL.trim() !== 'No Image') {
-    imgUrl = story.StoryImageURL.trim();
-  } else if (profile.ApostlePortraitURL && profile.ApostlePortraitURL.trim()) {
-    imgUrl = profile.ApostlePortraitURL.trim();
+  if (profile.SeasonNumber) {
+    headerName.textContent += ` – Season ${profile.SeasonNumber}`;
   }
-  // else: imgUrl remains 'img/placeholder.jpg'
+  headerDates.innerHTML = `Born: ${profile.BirthDate || '—'} | Called: ${profile.CallDate || '—'}<br>${formatDeathLabel(profile.DeathDate)}`;
 
-  bg.style.backgroundImage = `url(${imgUrl})`;
+  const stories = getStoriesForApostle(apostleName);
 
-  const overlay = document.createElement('div');
-  overlay.className = 'card-overlay';
-  overlay.innerHTML = `
-    <h3>${story.StoryDescription || 'Untitled Story'}</h3>
-    <p>${story.StoryDate || 'Date unknown'}</p>
-  `;
+  for (const story of stories) {
+    const card = document.createElement('a');
+    card.href = story.ThreadReaderURL || story.ThreadLink;
+    card.target = '_blank';
+    card.rel = 'noopener';
+    card.className = 'card';
 
-  card.append(bg, overlay);
-  grid.appendChild(card);
-}
+    const bg = document.createElement('div');
+    bg.className = 'card-bg';
+
+    let imgUrl = 'img/placeholder.jpg';
+
+    if (story.StoryImageURL && story.StoryImageURL.trim() && story.StoryImageURL.trim() !== 'No Image') {
+      imgUrl = story.StoryImageURL.trim();
+    } else if (profile.ApostlePortraitURL && profile.ApostlePortraitURL.trim()) {
+      imgUrl = profile.ApostlePortraitURL.trim();
+    }
+
+    bg.style.backgroundImage = `url(${imgUrl})`;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'card-overlay';
+    overlay.innerHTML = `
+      <h3>${story.StoryDescription || 'Untitled Story'}</h3>
+      <p>${story.StoryDate || 'Date unknown'}</p>
+    `;
+
+    card.append(bg, overlay);
+    grid.appendChild(card);
+  }
 }
