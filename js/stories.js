@@ -40,18 +40,10 @@ function renderStories(apostleName) {
     card.rel = 'noopener';
     card.className = 'card';
 
-    const bg = document.createElement('div');
-    bg.className = 'card-bg';
-
-    let imgUrl = 'img/placeholder.jpg';
-
-    if (story.StoryImageURL && story.StoryImageURL.trim() && story.StoryImageURL.trim() !== 'No Image') {
-      imgUrl = story.StoryImageURL.trim();
-    } else if (profile.ApostlePortraitURL && profile.ApostlePortraitURL.trim()) {
-      imgUrl = profile.ApostlePortraitURL.trim();
-    }
-
-    bg.style.backgroundImage = `url(${imgUrl})`;
+    const storyImage = story.StoryImageURL && story.StoryImageURL.trim() !== 'No Image'
+      ? story.StoryImageURL
+      : profile.ApostlePortraitURL;
+    const bg = createCardBackground(storyImage, apostleName);
 
     const overlay = document.createElement('div');
     overlay.className = 'card-overlay';

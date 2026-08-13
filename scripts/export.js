@@ -5,6 +5,16 @@ import { promises as fs } from 'fs';   // or import fs from 'fs/promises';
 
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQfZPsL8RZmrhJyMbXHCwT7C74Aad0euECIZI2qosIWmMaP7VB3AXBqtWrnPqpL7he2ZVKs5H8YYqDe/pub?gid=760488340&single=true&output=csv';
 const OUTPUT_PATH = './data/database.csv';
+const WIKIMEDIA_THUMB_SIZES = new Set([20, 40, 60, 120, 250, 330, 500, 960, 1280, 1920, 3840]);
+
+function normalizeWikimediaThumbs(csvText) {
+  return csvText.replace(
+    /(https?:\/\/upload\.wikimedia\.org\/wikipedia\/[^/]+\/thumb\/[^,\s"]+\/)(\d+)px-/gi,
+    (match, prefix, size) => (
+      WIKIMEDIA_THUMB_SIZES.has(Number(size)) ? match : `${prefix}250px-`
+    )
+  );
+}
 
 async function downloadCSV() {
   try {
@@ -15,7 +25,7 @@ async function downloadCSV() {
       }
     });
 
-    const csvText = response.data;
+    const csvText = normalizeWikimediaThumbs(response.data);
     await fs.writeFile(OUTPUT_PATH, csvText, 'utf8');
 
     const lines = csvText.trim().split('\n');

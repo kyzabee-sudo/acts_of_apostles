@@ -97,10 +97,7 @@ function renderChronological(apostlesToRender = null) {
     card.href = isPlaceholder ? '#' : `apostle.html?apostle=${encodeURIComponent(ap.name)}`;
     card.className = `card ${isPlaceholder ? 'inactive' : ''}`;
 
-    const bg = document.createElement('div');
-    bg.className = 'card-bg';
-    const url = ap.profile.ApostlePortraitURL?.trim() || 'img/placeholder.jpg';
-    bg.style.backgroundImage = `url(${url})`;
+    const bg = createCardBackground(ap.profile.ApostlePortraitURL, ap.name);
 
     const overlay = document.createElement('div');
     overlay.className = 'card-overlay';
@@ -171,10 +168,10 @@ function renderSuccession(apostlesToRender = null) {
       card.href = isPlaceholder ? '#' : `apostle.html?apostle=${encodeURIComponent(name)}`;
       card.className = `card small ${isPlaceholder ? 'inactive' : ''}`;
 
-      const bg = document.createElement('div');
-      bg.className = 'card-bg';
-      const url = profile.ApostlePortraitURL?.trim() || row.ApostlePortraitURL?.trim() || 'img/placeholder.jpg';
-      bg.style.backgroundImage = `url(${url})`;
+      const bg = createCardBackground(
+        profile.ApostlePortraitURL || row.ApostlePortraitURL,
+        name
+      );
 
       const overlay = document.createElement('div');
       overlay.className = 'card-overlay';

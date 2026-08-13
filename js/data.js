@@ -92,6 +92,49 @@ function formatDeathLabel(deathDate) {
   return `Died: ${value}`;
 }
 
+const PLACEHOLDER_IMAGE = 'img/placeholder.jpg';
+const WIKIMEDIA_THUMB_SIZES = [20, 40, 60, 120, 250, 330, 500, 960, 1280, 1920, 3840];
+
+// Used when the spreadsheet has no portrait URL.
+const PORTRAIT_OVERRIDES = {
+  'Thomas B. Marsh': 'img/portraits/thomas-b-marsh.png'
+};
+
+function normalizeImageUrl(url) {
+  const value = String(url ?? '').trim();
+  if (!value || /^no image$/i.test(value)) return '';
+
+  const thumb = value.match(
+    /^(https?:\/\/upload\.wikimedia\.org\/wikipedia\/[^/]+\/thumb\/.+\/)(\d+)px-([^/?#]+)(\?.*)?$/i
+  );
+  if (thumb && !WIKIMEDIA_THUMB_SIZES.includes(Number(thumb[2]))) {
+    return `${thumb[1]}250px-${thumb[3]}`;
+  }
+  return value;
+}
+
+function resolveCardImageUrl(url, apostleName) {
+  const normalized = normalizeImageUrl(url);
+  if (normalized) return normalized;
+  if (apostleName && PORTRAIT_OVERRIDES[apostleName]) {
+    return PORTRAIT_OVERRIDES[apostleName];
+  }
+  return PLACEHOLDER_IMAGE;
+}
+
+function createCardBackground(url, apostleName) {
+  const img = document.createElement('img');
+  img.className = 'card-bg';
+  img.alt = '';
+  img.src = resolveCardImageUrl(url, apostleName);
+  img.addEventListener('error', () => {
+    if (img.dataset.fallbackApplied) return;
+    img.dataset.fallbackApplied = '1';
+    img.src = PLACEHOLDER_IMAGE;
+  });
+  return img;
+}
+
 async function fetchData() {
   try {
     const response = await fetch(CSV_URL);
